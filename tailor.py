@@ -3,7 +3,7 @@
 __doc__ = """Small module to process data and take appropriate action
 	from programs that produce output on a line-by-line basis."""
 
-import subprocess, sys, time, re, tempfile, os, shlex
+import subprocess, sys, time, re, os, shlex
 
 ansi_re = re.compile("\x1b\[[0-9;]*[mGKHF]")
 
@@ -57,7 +57,8 @@ def tail_f(filename, follow=True):
         for line in _tail_f(file, follow=follow, signal_wait=True):
             yield line
     except GotEOF:
-        return _tail_f(file, follow=follow)
+        for line in _tail_f(file, follow=follow):
+            yield line
 
 def _tail_f(file, follow=True, signal_wait=False):
     line = ''
@@ -82,6 +83,15 @@ def get_tail_of_tail_f(filename, follow=True, tail_size=10):
             yield line
     for line in _tail_f(file, follow=follow):
         yield line
+
+class Listener:
+    """Instances of this 'listen' to each line produced by tail commands."""
+
+    def __init__(self):
+        self.lines = []
+
+    def add(self, line):
+        self.lines.append(time.time(), line)
 
 if __name__ == '__main__':
     #for line in tail_command("cat %s" % sys.argv[0]):
