@@ -81,6 +81,9 @@ def get_tail_of_tail_f(filename, follow=True, tail_size=10):
     except GotEOF:
         for line in lines[len(lines) - tail_size:]:
             yield line
+    # If it's a huuuge file with lots of lines, free up that memory as this
+    # function may run "forever".
+    del lines
     for line in _tail_f(file, follow=follow):
         yield line
 
